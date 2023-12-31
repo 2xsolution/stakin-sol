@@ -178,3 +178,11 @@ anchor deploy
 - `unstake`
 - `addReferral`
 - `claimReward`
+
+// TODO:
+
+- Clean utensils
+- Go home ASAP
+- Provide research findings to Ola
+- SiB: Networking
+- Retry test; if time left

@@ -4,15 +4,15 @@
 seeds = false
 skip-lint = false
 
-[programs.localnet]
-mango = "92CPjhz5G19stRScGBnvK6VeSXioTTcSHACJGW72cWGB"
+[programs.mainnet]
+mango = "Fj72ApTUaYEwC3RKCKQ7iX3s8i8CVAnZW1f9PAXSKtbY"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "mainnet"
+wallet = "~/.config/solana/main.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

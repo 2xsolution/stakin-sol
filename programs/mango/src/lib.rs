@@ -31,12 +31,16 @@ pub mod mango {
         let clock = Clock::get()?;
 
         // update user reward
+        let user_quota = pool_info
+            .tvl
+            .checked_div(user_info.amount)
+            .expect("Overflow error. TVL too low");
         let mut reward = clock
             .slot
             .checked_sub(user_info.deposit_slot)
             .expect("Overflow error. Clock slot is filled");
         reward = reward
-            .checked_mul(user_info.amount)
+            .checked_mul(user_quota)
             .expect("Overflow error: reward too high");
 
         // update user info
@@ -71,15 +75,20 @@ pub mod mango {
 
     pub fn unstake(ctx: Context<Unstake>) -> ProgramResult {
         let user_info = &mut ctx.accounts.user_info;
+        let pool_info = &mut ctx.accounts.pool_info;
         let clock = Clock::get()?;
 
         // update user reward
+        let user_quota = pool_info
+            .tvl
+            .checked_div(user_info.amount)
+            .expect("Overflow error. TVL too low");
         let mut reward = clock
             .slot
             .checked_sub(user_info.deposit_slot)
             .expect("Overflow error. Clock slot is filled");
         reward = reward
-            .checked_mul(user_info.amount)
+            .checked_mul(user_quota)
             .expect("Overflow error: reward too high");
 
         // update pool info
@@ -119,13 +128,22 @@ pub mod mango {
         let clock = Clock::get()?;
 
         // update user reward
-        let mut reward = clock
-            .slot
-            .checked_sub(user_info.deposit_slot)
-            .expect("Overflow error. Clock slot is filled");
-        reward = reward
-            .checked_mul(user_info.amount)
-            .expect("Overflow error: reward too high");
+        let mut reward;
+        if (user_info.deposit_slot as i64) < MIN_STAKING_PERIOD {
+            reward = 0;
+        } else {
+            let user_quota = pool_info
+                .tvl
+                .checked_div(user_info.amount)
+                .expect("Overflow error. TVL too low");
+            reward = clock
+                .slot
+                .checked_sub(user_info.deposit_slot)
+                .expect("Overflow error. Clock slot is filled");
+            reward = reward
+                .checked_mul(user_quota)
+                .expect("Overflow error: reward too high");
+        }
 
         // update user info
         user_info.reward = 0;
@@ -172,9 +190,9 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
-        init, 
-        payer = admin, 
-        space = 1024 + PoolInfo::LEN, 
+        init,
+        payer = admin,
+        space = 1024 + PoolInfo::LEN,
         seeds = [b"auction", admin.key().as_ref(), payer.key().as_ref(), 8u64.to_le_bytes().as_ref()], bump)]
     pub pool_info: Account<'info, PoolInfo>,
     #[account(mut)]
